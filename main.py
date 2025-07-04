@@ -4,7 +4,7 @@ Wumpus World - AI Agent Navigation
 Main entry point for the application
 """
 
-from game_interface import WumpusWorldGUI
+from game_interface import ModernWumpusWorldGUI
 
 def parse_grid_from_file(file_path):
     """Read and parse the grid input from a file"""
@@ -17,7 +17,7 @@ def main():
     print("=" * 50)
     
     # File path for the grid input
-    grid_file_path = "grid4.txt"  # Ensure this file exists in the same directory
+    grid_file_path = "grid.txt"  # Ensure this file exists in the same directory
     
     # Parse the grid from the file
     grid = parse_grid_from_file(grid_file_path)
@@ -26,7 +26,7 @@ def main():
         print(row)
     
     # Create and run the GUI
-    gui = WumpusWorldGUI(grid)
+    gui = ModernWumpusWorldGUI(grid)
     gui.run()
 
 if __name__ == "__main__":
