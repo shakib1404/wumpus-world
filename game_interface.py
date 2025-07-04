@@ -714,15 +714,41 @@ class ModernWumpusWorldGUI:
                     
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to load grid file: {str(e)}")
-    
     def start_game(self):
-        """Start the game"""
-        self.game_running = True
-        self.start_button.config(state='disabled')
-        self.step_button.config(state='normal')
-        self.auto_button.config(state='normal')
-        self.update_status("🎮 Game started! Agent is exploring...")
-        self.update_knowledge_base()
+     """Start the game with proper initialization"""
+     # Ensure game is in proper initial state
+     if not self.environment.agent_alive:
+        self.update_status("⚠️ Cannot start - agent is dead. Please reset first.")
+        return
+    
+     # Initialize game state
+     self.game_running = True
+    
+     # Update UI buttons
+     self.start_button.config(state='disabled')
+     self.step_button.config(state='normal')
+     self.auto_button.config(state='normal')
+    
+     # Add initial status messages
+     self.update_status("🎮 Game started! Agent is exploring...")
+     self.update_status(f"🤖 Starting at position {self.agent.position}")
+     self.update_status(f"🧭 Facing {['North', 'East', 'South', 'West'][self.agent.direction]}")
+    
+     # Get initial percepts and update knowledge base
+     initial_percepts = self.environment.get_percepts()
+     if initial_percepts:
+        self.update_status(f"📡 Initial percepts: {', '.join(initial_percepts)}")
+        # Let the agent process initial percepts
+        self.agent.update_knowledge_base(initial_percepts)
+     else:
+        self.update_status("📡 No initial percepts detected")
+    
+     # Update displays
+     self.update_knowledge_base()
+     self.draw_grid()
+    
+     # Force GUI update
+     self.root.update_idletasks()
     
     def step_game(self):
         """Execute one step of the game"""
@@ -782,31 +808,57 @@ class ModernWumpusWorldGUI:
             self.auto_step_id = self.root.after(delay, self.auto_step)
     
     def reset_game(self):
-       def reset_game(self):
-        """Reset the game to initial state"""
-        self.game_running = False
-        self.auto_play = False
-        
-        # Reset environment
-        self.environment.agent_alive = True
-        self.environment.agent_has_gold = False
-        self.environment.wumpus_alive = True
-        
-        # Reset agent directly
-        self.agent.position = (0, 0)
-        self.agent.direction = 0
-        self.agent.has_arrow = True
-        self.agent.has_gold = False
-        
-        # Reset UI
-        self.start_button.config(state='normal')
-        self.step_button.config(state='disabled')
-        self.auto_button.config(state='disabled', text="⏯️ Auto Play")
-        
-        # Update display
-        self.draw_grid()
-        self.update_status("🔄 Game reset. Ready to start!")
-        self.update_knowledge_base()
+     """Reset the game to initial state"""
+     # Stop any ongoing auto-play
+     self.game_running = False
+     self.auto_play = False
+    
+     if hasattr(self, 'auto_step_id'):
+        self.root.after_cancel(self.auto_step_id)
+    
+     # Reset environment to initial state
+     self.environment.agent_alive = True
+     self.environment.agent_has_gold = False
+     self.environment.wumpus_alive = True
+    
+     # Create a new agent instance to ensure complete reset
+     self.agent = WumpusAgent(self.environment.size)
+    
+     # Ensure agent starts at (0,0) with proper initial state
+     self.agent.position = (0, 0)
+     self.agent.direction = 0  # Facing North
+     self.agent.has_arrow = True
+     self.agent.has_gold = False
+    
+     # Reset agent's knowledge base completely
+     self.agent.kb.visited = set()
+     self.agent.kb.safe_cells = set([(0, 0)])  # Starting position is always safe
+     self.agent.kb.pit_possible = set()
+     self.agent.kb.wumpus_possible = set()
+    
+     # Reset UI buttons to initial state
+     self.start_button.config(state='normal')
+     self.step_button.config(state='disabled')
+     self.auto_button.config(state='disabled', text="⏯️ Auto Play")
+    
+     # Clear status text and show reset message
+     self.status_text.config(state='normal')
+     self.status_text.delete(1.0, tk.END)
+     self.status_text.insert(tk.END, "🔄 Game reset. Ready to start!\n")
+     self.status_text.insert(tk.END, "🤖 Agent is at position (0,0) facing North\n")
+     self.status_text.insert(tk.END, "🏹 Agent has arrow and is ready to explore\n")
+     self.status_text.config(state='disabled')
+    
+     # Update knowledge base display
+     self.update_knowledge_base()
+    
+     # Redraw the grid to show initial state
+     self.draw_grid()
+     
+     # Force GUI update to ensure all changes are visible
+     self.root.update_idletasks()
+    
+     print("Game reset completed - Agent ready for new game")
     def game_over(self, message):
         """Handle game over"""
         self.game_running = False

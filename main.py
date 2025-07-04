@@ -17,7 +17,7 @@ def main():
     print("=" * 50)
     
     # File path for the grid input
-    grid_file_path = "grid.txt"  # Ensure this file exists in the same directory
+    grid_file_path = "grid2.txt"  # Ensure this file exists in the same directory
     
     # Parse the grid from the file
     grid = parse_grid_from_file(grid_file_path)
