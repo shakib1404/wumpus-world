@@ -16,6 +16,7 @@ class KnowledgeBase:
         self.stench_locations = set()
         self.wumpus_alive = True
         self.gold_location = None
+        self.add_visit((0, 0))
         
     def add_visit(self, pos: Tuple[int, int]):
         """Mark a cell as visited and safe"""
@@ -24,6 +25,10 @@ class KnowledgeBase:
         # Remove from possible danger sets
         self.pit_possible.discard(pos)
         self.wumpus_possible.discard(pos)
+        self.pit_definite.discard(pos)
+        self.wumpus_definite.discard(pos)
+    
+
     
     def add_percept(self, pos: Tuple[int, int], percepts: List[str]):
         """Process percepts at a given position"""
