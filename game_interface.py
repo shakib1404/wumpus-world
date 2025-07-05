@@ -7,6 +7,10 @@ import random
 from environment import WumpusEnvironment
 from agent import WumpusAgent
 
+
+from collections import deque
+from knowledge_base import KnowledgeBase
+
 class ModernWumpusWorldGUI:
     """Modern Graphical User Interface for Wumpus World"""
 
@@ -17,6 +21,7 @@ class ModernWumpusWorldGUI:
         self.root.title("🏺 Wumpus World - AI Agent Navigation")
         self.root.geometry("1400x900")
         self.root.configure(bg='#1a1a1a')
+        self.initial_grid = grid
         
         # Modern color scheme
         self.colors = {
@@ -816,30 +821,25 @@ class ModernWumpusWorldGUI:
      if hasattr(self, 'auto_step_id'):
         self.root.after_cancel(self.auto_step_id)
     
-     # Reset environment to initial state
-     self.environment.agent_alive = True
-     self.environment.agent_has_gold = False
-     self.environment.wumpus_alive = True
+     # Reset environment to initial state - create fresh instance
+     self.environment = WumpusEnvironment(self.environment.size)
+    
+     # If we have initial grid data, reload it; otherwise generate random
+     if hasattr(self, 'initial_grid') and self.initial_grid:
+        self.load_environment_from_grid(self.initial_grid)
+     else:
+        self.environment.generate_random_environment()
     
      # Create a new agent instance to ensure complete reset
      self.agent = WumpusAgent(self.environment.size)
     
-     # Ensure agent starts at (0,0) with proper initial state
-     self.agent.position = (0, 0)
-     self.agent.direction = 0  # Facing North
-     self.agent.has_arrow = True
-     self.agent.has_gold = False
-    
-     # Reset agent's knowledge base completely
-     self.agent.kb.visited = set()
-     self.agent.kb.safe_cells = set([(0, 0)])  # Starting position is always safe
-     self.agent.kb.pit_possible = set()
-     self.agent.kb.wumpus_possible = set()
+     # Initialize knowledge base fresh
+     self.agent.kb = KnowledgeBase(self.environment.size)
     
      # Reset UI buttons to initial state
      self.start_button.config(state='normal')
      self.step_button.config(state='disabled')
-     self.auto_button.config(state='disabled', text="⏯️ Auto Play")
+     self.auto_button.config(text="⏯️ Auto Play", state='disabled')
     
      # Clear status text and show reset message
      self.status_text.config(state='normal')
@@ -854,11 +854,13 @@ class ModernWumpusWorldGUI:
     
      # Redraw the grid to show initial state
      self.draw_grid()
-     
+    
      # Force GUI update to ensure all changes are visible
      self.root.update_idletasks()
     
      print("Game reset completed - Agent ready for new game")
+    
+     
     def game_over(self, message):
         """Handle game over"""
         self.game_running = False

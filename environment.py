@@ -1,4 +1,3 @@
-# wumpus_world/environment.py
 import random
 from typing import Set, Tuple, List
 
@@ -7,16 +6,22 @@ class WumpusEnvironment:
     
     def __init__(self, size=10):
         self.size = size
+        self.reset()
+    
+    def reset(self):
+        """Reset environment to initial state"""
         self.pits = set()
-        self.wumpus_pos = (1, 1)
-        self.gold_pos = (8, 8)
+        self.wumpus_pos = (1, 1)  # Default position, will be randomized
+        self.gold_pos = (8, 8)    # Default position, will be randomized
         self.agent_pos = (0, 0)
         self.agent_direction = 0  # 0=North, 1=East, 2=South, 3=West
         self.agent_alive = True
         self.wumpus_alive = True
         self.agent_has_gold = False
         self.agent_has_arrow = True
-        
+        self.generate_random_environment()
+    
+    # [Rest of the original methods remain unchanged...]
     def generate_random_environment(self):
         """Generate a random Wumpus World environment"""
         self.pits.clear()

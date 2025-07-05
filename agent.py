@@ -8,16 +8,20 @@ class WumpusAgent:
     
     def __init__(self, size=10):
         self.size = size
+        self.reset()
+    
+    def reset(self):
+        """Reset agent to initial state"""
         self.position = (0, 0)
         self.direction = 0  # 0=North, 1=East, 2=South, 3=West
         self.has_arrow = True
         self.has_gold = False
-        self.kb = KnowledgeBase(size)
+        self.kb = KnowledgeBase(self.size)
         self.plan = deque()
         self.returning_home = False
-        
-        # Initialize starting position as safe
-        self.kb.add_visit((0, 0))
+        self.kb.add_visit((0, 0))  # Mark starting position as safe
+    
+    # [Rest of the original methods remain unchanged...]
     
     def get_action(self, percepts: List[str]) -> str:
         """Get the next action based on current percepts"""
