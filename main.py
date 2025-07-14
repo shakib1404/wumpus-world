@@ -11,13 +11,13 @@ def parse_grid_from_file(file_path):
     with open(file_path, "r") as file:
         return [list(line.strip()) for line in file if line.strip()]
 
-def main():
+def main(): 
     """Main function to run the Wumpus World game"""
     print("Starting Wumpus World - AI Agent Navigation")
     print("=" * 50)
     
     # File path for the grid input
-    grid_file_path = "grid5.txt"  # Ensure this file exists in the same directory
+    grid_file_path = "grid3.txt"  # Ensure this file exists in the same directory
     
     # Parse the grid from the file
     grid = parse_grid_from_file(grid_file_path)

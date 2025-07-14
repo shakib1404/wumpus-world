@@ -26,7 +26,7 @@ class WumpusEnvironment:
         
         safe_zone = {(0, 0), (0, 1), (1, 0)}
         
-        num_pits = random.randint(int(self.size * self.size * 0.15), int(self.size * self.size * 0.20))
+        num_pits = random.randint(int(self.size * self.size * 0.08), int(self.size * self.size * 0.10))
         for _ in range(num_pits):
             while True:
                 pos = (random.randint(0, self.size-1), random.randint(0, self.size-1))
