@@ -34,6 +34,7 @@ class WumpusAgent:
         )
 
     def get_action(self, percepts: List[str]) -> str:
+        
         self.kb.add_percept(self.position, percepts)
         self.move_count += 1
 
@@ -80,45 +81,134 @@ class WumpusAgent:
             return next_action
 
         return self._choose_action_with_selector(percepts)
-
     def _choose_action_with_selector(self, percepts: List[str]) -> str:
-        """Use ActionSelector to choose the best action"""
-        
-        # Get available actions from ActionSelector
-        available_actions = self.action_selector.get_available_actions(
-            self.position, 
-            self.size, 
-            self.has_arrow
-        )
-        
-        # Filter actions based on safety and current state
-        safe_actions = self._filter_safe_actions(available_actions, percepts)
-        
-        if not safe_actions:
-            # Emergency fallback if no safe actions
-            return self._emergency_action(percepts)
-        
-        # Use ActionSelector to pick the best action
+     """Use ActionSelector to choose the best action"""
+     
+    
+     # Get available actions from ActionSelector
+     available_actions = self.action_selector.get_available_actions(
+        self.position, 
+        self.size, 
+        self.has_arrow
+     )
+    
+     # First try to filter only safe actions
+     safe_actions = self._filter_safe_actions(available_actions, percepts)
+
+     if self.kb.safe_cells==self.kb.visited:
+        print("No safe actions available, considering risky moves")
+        risky_action = self._choose_risky_move(available_actions, percepts)
+        if risky_action:
+            return risky_action
+    
+     if safe_actions:
+        # Use ActionSelector to pick the best safe action
         selected_action = self.action_selector.select_action(
             self.position,
             self.kb,
             safe_actions,
             self.has_arrow
         )
-        
-        # Convert Action enum to string command
         return self._convert_action_to_command(selected_action)
+     # If no safe actions, check if we should make a risky move
+     
+     # If no safe actions, check if we should make a risky move
+     if self._should_make_risky_move():
+        print("No safe actions available, considering risky moves")
+        risky_action = self._choose_risky_move(available_actions, percepts)
+        if risky_action:
+            return risky_action
+    
+     # Emergency fallback if no safe or risky moves available
+     return self._emergency_action(percepts)
+    
+    def _should_make_risky_move(self) -> bool:
+     """Determine if we should consider making a risky move"""
+     # Only consider risky moves if we've explored all definitely safe cells
+     safe_unvisited = self._get_definitely_safe_unvisited()
+     return len(safe_unvisited) == 0
 
+    def _choose_risky_move(self, available_actions: List[Action], percepts: List[str]) -> Optional[str]:
+     """Choose the least risky move when no safe options are available"""
+     risky_moves = []
+     print(available_actions)
+    
+     for action in available_actions:
+        if action.value.startswith("move_"):
+            target_pos = self._get_target_position_from_action(action)
+            if target_pos is None:  # Out of bounds
+                continue
+                
+            if target_pos not in self.kb.visited:
+                # Calculate risk score (lower is better)
+                pit_prob = self.kb.get_pit_probability(target_pos)
+                wumpus_prob = self.kb.get_wumpus_probability(target_pos)
+                risk_score = pit_prob * 1000 + wumpus_prob * 1000
+                
+                # Add small bonus for potentially revealing new information
+                info_bonus = self._calculate_information_gain(target_pos)
+                risk_score -= info_bonus
+                
+                risky_moves.append((risk_score, action, target_pos))
+     print(risky_moves)
+     if not risky_moves:
+        return None
+        
+     # Sort by risk score (lowest first)
+     risky_moves.sort(key=lambda x: x[0])
+     print("sorted moves",risky_moves)
+    
+     # Choose the least risky move
+     best_score, best_action, best_pos = risky_moves[0]
+    
+     # Only proceed if the risk is below our threshold
+     if best_score <=940:  # Adjust threshold as needed
+        return self._convert_action_to_command(best_action)
+    
+     return None
+ 
+    def _calculate_information_gain(self, pos: Tuple[int, int]) -> float:
+     """Calculate how much information we might gain by visiting this position"""
+     if pos in self.kb.visited:
+        return 0.0
+        
+     info_gain = 0.0
+    
+     # Check adjacent cells for possible dangers this could resolve
+     for adj in self._get_adjacent(pos):
+        if adj in self.kb.pit_possible or adj in self.kb.wumpus_possible:
+            info_gain += 50.0
+            
+     # Bonus if this position is adjacent to multiple unknown cells
+     unknown_adjacent = sum(1 for adj in self._get_adjacent(pos) 
+                          if adj not in self.kb.visited)
+     info_gain += unknown_adjacent * 20.0 
+    
+     return info_gain
+ 
     def _filter_safe_actions(self, actions: List[Action], percepts: List[str]) -> List[Action]:
-        """Filter actions to only include safe ones"""
-        safe_actions = []
-        
-        for action in actions:
-            if self._is_action_safe(action, percepts):
+     """Filter actions to only include safe ones"""
+     safe_actions = []
+     for action in actions:
+        if action in [Action.GRAB, Action.CLIMB]:
+            safe_actions.append(action)
+            continue
+            
+        if action.value.startswith("shoot_"):
+            if self.has_arrow:
                 safe_actions.append(action)
-        
-        return safe_actions
-
+            continue
+            
+        if action.value.startswith("move_"):
+            target_pos = self._get_target_position_from_action(action)
+            if target_pos is None:  # Out of bounds
+                continue
+                
+            # Only allow moves to definitely safe positions
+            if self._is_definitely_safe(target_pos):
+                safe_actions.append(action)
+    
+     return safe_actions
     def _is_action_safe(self, action: Action, percepts: List[str]) -> bool:
         """Check if an action is safe to perform"""
         
