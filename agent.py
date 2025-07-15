@@ -178,6 +178,7 @@ class WumpusAgent:
      for adj in self._get_adjacent(pos):
         if adj in self.kb.pit_possible or adj in self.kb.wumpus_possible:
             info_gain += 50.0
+        
             
      # Bonus if this position is adjacent to multiple unknown cells
      unknown_adjacent = sum(1 for adj in self._get_adjacent(pos) 
