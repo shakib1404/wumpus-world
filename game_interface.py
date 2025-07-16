@@ -1,4 +1,3 @@
-# wumpus_world/game_interface.py
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import json
@@ -6,16 +5,10 @@ import math
 import random
 from environment import WumpusEnvironment
 from agent import WumpusAgent
-
-
 from collections import deque
 from knowledge_base import KnowledgeBase
 
 class ModernWumpusWorldGUI:
-    """Modern Graphical User Interface for Wumpus World"""
-
-   
-    
     def __init__(self, grid=None):
         self.root = tk.Tk()
         self.root.title("🏺 Wumpus World - AI Agent Navigation")
@@ -23,7 +16,7 @@ class ModernWumpusWorldGUI:
         self.root.configure(bg='#1a1a1a')
         self.initial_grid = grid
         
-        # Modern color scheme
+
         self.colors = {
             'bg_primary': '#1a1a1a',
             'bg_secondary': '#2d2d2d',
@@ -52,12 +45,10 @@ class ModernWumpusWorldGUI:
         self.auto_play = False
         self.animation_id = None
         
-        # Animation variables
         self.agent_scale = 1.0
         self.agent_rotation = 0.0
         self.pulse_phase = 0.0
         
-        # Load environment from grid if provided
         if grid:
             self.load_environment_from_grid(grid)
         else:
@@ -69,13 +60,9 @@ class ModernWumpusWorldGUI:
         self.start_animations()
     
     def setup_styles(self):
-        """Setup modern ttk styles"""
         style = ttk.Style()
         
-        # Configure dark theme
         style.theme_use('clam')
-        
-        # Button styles
         style.configure('Modern.TButton',
                        background=self.colors['bg_tertiary'],
                        foreground=self.colors['text_primary'],
@@ -87,7 +74,7 @@ class ModernWumpusWorldGUI:
                  background=[('active', self.colors['accent']),
                            ('pressed', self.colors['accent_dark'])])
         
-        # Accent button style
+
         style.configure('Accent.TButton',
                        background=self.colors['accent'],
                        foreground=self.colors['bg_primary'],
@@ -144,32 +131,26 @@ class ModernWumpusWorldGUI:
                        background=self.colors['grid_line'])
     
     def load_environment_from_grid(self, grid):
-     """Load environment from grid representation with support for multiple Wumpuses"""
      self.environment.size = len(grid)
      self.environment.pits.clear()
     
-     # Clear existing Wumpus data
      self.environment.wumpus_positions.clear()
      self.environment.wumpus_alive.clear()
       
      for y, row in enumerate(grid):
         for x, cell in enumerate(row):
-            # Convert grid coordinates (y increases downward) to world coordinates (y increases upward)
             world_y = len(grid) - 1 - y
             
             if cell == 'P':
                 self.environment.pits.add((x, world_y))
             elif cell == 'W':
                 self.environment.wumpus_positions.add((x, world_y))
-                self.environment.wumpus_alive.add((x, world_y))  # Mark as alive
+                self.environment.wumpus_alive.add((x, world_y))
             elif cell == 'G':
                 self.environment.gold_pos = (x, world_y)
     
-     # Update the agent's knowledge about number of Wumpuses
      self.agent.kb.num_wumpuses = len(self.environment.wumpus_positions)
      
-    
-     # If no gold position found, place it randomly
      if not self.environment.gold_pos:
         while True:
             pos = (random.randint(0, self.environment.size-1), 
@@ -180,7 +161,6 @@ class ModernWumpusWorldGUI:
                 self.environment.gold_pos = pos
                 break
     
-     # Print the loaded grid
      print("Loaded Grid:")
      for row in grid:
         print(' '.join(cell if cell in ['P', 'W', 'G'] else '.' for cell in row))
@@ -191,12 +171,9 @@ class ModernWumpusWorldGUI:
      print("pit possible:", sorted(list(self.agent.kb.pit_possible)))
      print("pit definitr:", sorted(list(self.agent.kb.pit_definite)))
     def setup_ui(self):
-        """Setup the modern user interface"""
-        # Main container with gradient-like effect
         main_frame = tk.Frame(self.root, bg=self.colors['bg_primary'])
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
         
-        # Header
         header_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'], height=60)
         header_frame.pack(fill=tk.X, pady=(0, 20))
         header_frame.pack_propagate(False)
@@ -215,31 +192,25 @@ class ModernWumpusWorldGUI:
                                  bg=self.colors['bg_primary'])
         subtitle_label.pack(side=tk.LEFT, padx=(20, 0), pady=10)
         
-        # Content area
         content_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
         content_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Left panel for game grid
         left_frame = tk.Frame(content_frame, bg=self.colors['bg_primary'])
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 20))
         
-        # Right panel for controls and info
         right_frame = tk.Frame(content_frame, bg=self.colors['bg_primary'], width=400)
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         right_frame.pack_propagate(False)
         
-        # Setup panels
         self.setup_game_grid(left_frame)
         self.setup_control_panel(right_frame)
         self.setup_status_panel(right_frame)
         self.setup_knowledge_panel(right_frame)
     
     def setup_game_grid(self, parent):
-        """Setup the modern game grid display"""
         grid_frame = tk.Frame(parent, bg=self.colors['bg_secondary'], relief='flat', bd=2)
         grid_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # Grid header
         header = tk.Frame(grid_frame, bg=self.colors['bg_secondary'], height=40)
         header.pack(fill=tk.X, padx=10, pady=(10, 0))
         header.pack_propagate(False)
@@ -249,7 +220,6 @@ class ModernWumpusWorldGUI:
                 fg=self.colors['text_primary'],
                 bg=self.colors['bg_secondary']).pack(side=tk.LEFT, pady=10)
         
-        # Canvas with modern styling
         canvas_frame = tk.Frame(grid_frame, bg=self.colors['bg_secondary'])
         canvas_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
@@ -264,11 +234,9 @@ class ModernWumpusWorldGUI:
         self.grid_offset = 25
     
     def setup_control_panel(self, parent):
-        """Setup the modern control panel"""
         control_frame = tk.Frame(parent, bg=self.colors['bg_secondary'], relief='flat', bd=2)
         control_frame.pack(fill=tk.X, pady=(0, 15), padx=5)
         
-        # Header
         header = tk.Frame(control_frame, bg=self.colors['bg_secondary'], height=40)
         header.pack(fill=tk.X, padx=15, pady=(15, 0))
         header.pack_propagate(False)
@@ -278,11 +246,9 @@ class ModernWumpusWorldGUI:
                 fg=self.colors['text_primary'],
                 bg=self.colors['bg_secondary']).pack(side=tk.LEFT, pady=10)
         
-        # Button container
         btn_frame = tk.Frame(control_frame, bg=self.colors['bg_secondary'])
         btn_frame.pack(fill=tk.X, padx=15, pady=15)
         
-        # Environment controls
         env_frame = tk.Frame(btn_frame, bg=self.colors['bg_secondary'])
         env_frame.pack(fill=tk.X, pady=(0, 10))
         
@@ -296,11 +262,9 @@ class ModernWumpusWorldGUI:
         self.create_modern_button(env_frame, "💾 Save Environment", self.save_environment)
         self.create_modern_button(env_frame, "📋 Load Grid File", self.load_grid_file)
         
-        # Separator
         sep = tk.Frame(btn_frame, bg=self.colors['grid_line'], height=1)
         sep.pack(fill=tk.X, pady=15)
         
-        # Game controls
         game_frame = tk.Frame(btn_frame, bg=self.colors['bg_secondary'])
         game_frame.pack(fill=tk.X, pady=(0, 10))
         
@@ -314,7 +278,6 @@ class ModernWumpusWorldGUI:
         self.auto_button = self.create_modern_button(game_frame, "⏯️ Auto Play", self.toggle_auto_play, enabled=False)
         self.reset_button = self.create_modern_button(game_frame, "🔄 Reset", self.reset_game)
         
-        # Speed control
         speed_frame = tk.Frame(btn_frame, bg=self.colors['bg_secondary'])
         speed_frame.pack(fill=tk.X, pady=(10, 0))
         

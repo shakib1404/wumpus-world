@@ -57,7 +57,6 @@ class WumpusEnvironment:
         self.agent_has_arrow = True
 
     def _minimum_wumpus_distance(self, pos: Tuple[int, int], min_dist=3) -> bool:
-        """Ensure Wumpuses are spaced apart"""
         for wpos in self.wumpus_positions:
             if abs(pos[0] - wpos[0]) + abs(pos[1] - wpos[1]) < min_dist:
                 return False
@@ -67,16 +66,13 @@ class WumpusEnvironment:
         percepts = []
         x, y = self.agent_pos
 
-        
         for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
           nx, ny = x + dx, y + dy
           if 0 <= nx < self.size and 0 <= ny < self.size:
              if (nx, ny) in self.wumpus_alive:
                 percepts.append("Stench")
                 break
-       
 
-        # Check for breeze from any pit
         for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             nx, ny = x + dx, y + dy
             if 0 <= nx < self.size and 0 <= ny < self.size:
